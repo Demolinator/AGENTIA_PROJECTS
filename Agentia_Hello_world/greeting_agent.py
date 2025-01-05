@@ -9,34 +9,37 @@ class State(TypedDict):
     greeting_response: str
     final_response: str
 
-
 # Greeting Agent Node
 def greeting_agent_function(state: State) -> State:
-    # Expanded list of greetings
     greetings = [
         "hello", "hi", "hey", "good morning", "good afternoon", "good evening",
         "how are you", "greetings", "salutations", "what's up", "howdy"
     ]
     message = state.get("message", "").strip().lower()
 
-    # Create a regex pattern to match any greeting, case-insensitive
-    greeting_pattern = re.compile(r'\b(?:' + '|'.join(map(re.escape, greetings)) + r')\b', re.IGNORECASE)
+    print(f"Debug: Received message = '{message}'")
 
-    # Search for the pattern in the message
+    greeting_pattern = re.compile(r'(?:' + '|'.join(map(re.escape, greetings)) + r')', re.IGNORECASE)
+
     if greeting_pattern.search(message):
+        print("Debug: Greeting detected!")
         state["greeting_response"] = "Hello! How can I assist you today?"
     else:
+        print("Debug: No greeting detected.")
         state["greeting_response"] = "I only handle greetings right now."
     return state
 
-
 # Front-End Orchestration Node
 def front_end_agent_function(state: State) -> State:
-    greeting_response = state.get("greeting_response")
-    if greeting_response:
-        state["final_response"] = greeting_response
+    print(f"Debug: Received state in FrontEndAgent = {state}")
+
+    # Ensure greeting_response is updated before final_response
+    if "greeting_response" in state and state["greeting_response"]:
+        state["final_response"] = state["greeting_response"]
+        print("Debug: Final response updated with greeting_response!")
     else:
         state["final_response"] = "I can only handle greetings for now!"
+        print("Debug: Final response set to default message.")
     return state
 
 # Create StateGraph with the defined state schema
@@ -47,18 +50,18 @@ greeting_graph.add_node("GreetingAgent", greeting_agent_function)
 greeting_graph.add_node("FrontEndAgent", front_end_agent_function)
 
 # Define the workflow
-greeting_graph.add_edge(START, "FrontEndAgent")  # Set entry point
-greeting_graph.add_edge("FrontEndAgent", "GreetingAgent")
-greeting_graph.add_edge("GreetingAgent", END)  # Set end point
+greeting_graph.add_edge(START, "GreetingAgent")  # Process greeting first
+greeting_graph.add_edge("GreetingAgent", "FrontEndAgent")  # Pass greeting to front-end
+greeting_graph.add_edge("FrontEndAgent", END)  # End workflow at front-end
 
 # Compile the graph
 compiled_graph = greeting_graph.compile()
 
 # Function to run the graph
 def run_greeting_agent(input_message: str) -> str:
-    result = compiled_graph.invoke(
-        {"message": input_message}
-    )
+    # Prepare initial state
+    initial_state = {"message": input_message, "greeting_response": "", "final_response": ""}
+    result = compiled_graph.invoke(initial_state)
     return result["final_response"]
 
 # Test the agents
