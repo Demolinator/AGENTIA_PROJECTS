@@ -3,6 +3,7 @@ from langgraph.constants import START, END
 from typing import TypedDict
 import re
 import requests
+import random
 
 # Function to get the user's location
 def get_user_location() -> str:
@@ -14,20 +15,6 @@ def get_user_location() -> str:
     except Exception as e:
         print(f"Debug: Error getting location - {e}")
         return "Unknown Location"
-
-
-def get_user_location() -> str:
-    try:
-        # Get location from IP info
-        response = requests.get("https://ipinfo.io", timeout=5)
-        data = response.json()
-        city = data.get("city", "Unknown City")
-        print(f"Debug: User location detected: {city}")
-        return city
-    except Exception as e:
-        print(f"Debug: Error getting location - {e}")
-        return "Unknown City"
-
 
 # Function to get the weather for a given location
 def get_coordinates(location: str) -> dict:
@@ -119,6 +106,7 @@ class State(TypedDict):
     message: str
     greeting_response: str
     weather_response: str
+    joke_response: str
     final_response: str
 
 # Greeting Agent Node
@@ -157,24 +145,51 @@ def weather_agent_function(state: State) -> State:
         print("Debug: No weather-related keywords detected.")
     return state
 
+# Joke Agent Node
+def joke_agent_function(state: State) -> State:
+    joke_keywords = ["joke", "funny", "laugh"]
+    message = state.get("message", "").strip().lower()
+
+    print(f"Debug: Received message in JokeAgent = '{message}'")
+
+    if any(keyword in message for keyword in joke_keywords):
+        jokes = [
+            "Why don't scientists trust atoms? Because they make up everything!",
+            "Why did the scarecrow win an award? Because he was outstanding in his field!",
+            "What do you call fake spaghetti? An impasta!"
+        ]
+        state["joke_response"] = random.choice(jokes)
+        print(f"Debug: Joke response generated: {state['joke_response']}")
+    else:
+        state["joke_response"] = "I can tell jokes if you ask for one!"
+        print("Debug: No joke-related keywords detected.")
+    return state
+
 # Front-End Orchestration Node
 def front_end_agent_function(state: State) -> State:
     print(f"Debug: Received state in FrontEndAgent = {state}")
 
-    # Check for weather-related keywords
-    weather_keywords = ["weather", "temperature", "forecast"]
     message = state.get("message", "").strip().lower()
 
-    if any(keyword in message for keyword in weather_keywords):
-        state["final_response"] = state["weather_response"]
-        print("Debug: Final response updated with weather_response!")
-    elif "greeting_response" in state and state["greeting_response"]:
+    # Prioritize based on detected keywords
+    greeting_keywords = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "howdy"]
+    joke_keywords = ["joke", "funny", "laugh"]
+    weather_keywords = ["weather", "temperature", "forecast"]
+
+    if any(keyword in message for keyword in greeting_keywords):
         state["final_response"] = state["greeting_response"]
         print("Debug: Final response updated with greeting_response!")
+    elif any(keyword in message for keyword in joke_keywords):
+        state["final_response"] = state["joke_response"]
+        print("Debug: Final response updated with joke_response!")
+    elif any(keyword in message for keyword in weather_keywords):
+        state["final_response"] = state["weather_response"]
+        print("Debug: Final response updated with weather_response!")
     else:
-        state["final_response"] = "I can only handle greetings and weather queries for now!"
+        state["final_response"] = "I can handle greetings, weather queries, and jokes!"
         print("Debug: Final response set to default message.")
     return state
+
 
 # Create StateGraph with the defined state schema
 greeting_graph = StateGraph(state_schema=State)
@@ -182,11 +197,13 @@ greeting_graph = StateGraph(state_schema=State)
 # Add nodes
 greeting_graph.add_node("GreetingAgent", greeting_agent_function)
 greeting_graph.add_node("WeatherAgent", weather_agent_function)
+greeting_graph.add_node("JokeAgent", joke_agent_function)
 greeting_graph.add_node("FrontEndAgent", front_end_agent_function)
 
 # Define the workflow
 greeting_graph.add_edge(START, "GreetingAgent")  # Process greeting first
-greeting_graph.add_edge("GreetingAgent", "WeatherAgent")  # Route to WeatherAgent
+greeting_graph.add_edge("GreetingAgent", "JokeAgent")  # Route to JokeAgent
+greeting_graph.add_edge("JokeAgent", "WeatherAgent")  # Route to WeatherAgent
 greeting_graph.add_edge("WeatherAgent", "FrontEndAgent")  # Pass weather to front-end
 greeting_graph.add_edge("FrontEndAgent", END)  # End workflow at front-end
 
@@ -200,6 +217,7 @@ def run_greeting_agent(input_message: str) -> str:
         "message": input_message,
         "greeting_response": "",
         "weather_response": "",
+        "joke_response": "",
         "final_response": ""
     }
     result = compiled_graph.invoke(initial_state)
