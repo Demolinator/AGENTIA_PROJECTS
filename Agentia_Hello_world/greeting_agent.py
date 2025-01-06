@@ -171,23 +171,35 @@ def front_end_agent_function(state: State) -> State:
 
     message = state.get("message", "").strip().lower()
 
-    # Prioritize based on detected keywords
+    # Keywords for detecting intents
     greeting_keywords = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "howdy"]
     joke_keywords = ["joke", "funny", "laugh"]
     weather_keywords = ["weather", "temperature", "forecast"]
 
-    if any(keyword in message for keyword in greeting_keywords):
-        state["final_response"] = state["greeting_response"]
-        print("Debug: Final response updated with greeting_response!")
-    elif any(keyword in message for keyword in joke_keywords):
-        state["final_response"] = state["joke_response"]
-        print("Debug: Final response updated with joke_response!")
-    elif any(keyword in message for keyword in weather_keywords):
-        state["final_response"] = state["weather_response"]
-        print("Debug: Final response updated with weather_response!")
+    # Detect multiple intents
+    intents = {
+        "greeting": any(keyword in message for keyword in greeting_keywords),
+        "joke": any(keyword in message for keyword in joke_keywords),
+        "weather": any(keyword in message for keyword in weather_keywords)
+    }
+
+    # Build response based on detected intents
+    response_parts = []
+    if intents["greeting"]:
+        response_parts.append(state["greeting_response"])
+    if intents["joke"]:
+        response_parts.append(state["joke_response"])
+    if intents["weather"]:
+        response_parts.append(state["weather_response"])
+
+    # Combine responses or set a default response
+    if response_parts:
+        state["final_response"] = " ".join(response_parts)
+        print("Debug: Final response updated with combined responses!")
     else:
         state["final_response"] = "I can handle greetings, weather queries, and jokes!"
         print("Debug: Final response set to default message.")
+    
     return state
 
 
