@@ -1,6 +1,6 @@
 # **Agentia Hello World: Greeting Agent Project**
 
-Welcome to the **Agentia Hello World** project! This repository demonstrates a simple yet powerful multi-agent conversation system, focusing on natural language interactions. The project features a **Front-End Orchestration Agent**, a **Greeting Agent**, and a newly added **Weather Agent**, designed to showcase how agents communicate and collaborate seamlessly.
+Welcome to the **Agentia Hello World** project! This repository demonstrates a simple yet powerful multi-agent conversation system, focusing on natural language interactions. The project features a **Front-End Orchestration Agent**, a **Greeting Agent**, a **Weather Agent**, and a newly added **Joke Agent**, designed to showcase how agents communicate and collaborate seamlessly.
 
 ---
 
@@ -16,7 +16,10 @@ This project is a foundational step into the world of multi-agent systems, where
   A specialized agent that handles simple greetings (like "Hello," "How are you?") and responds accordingly.
   
 - **Weather Agent**:  
-  A newly added agent that fetches real-time weather information based on the user's location and responds with the current temperature and weather condition.
+  An agent that fetches real-time weather information based on the user's location and responds with the current temperature and weather condition.
+
+- **Joke Agent**:  
+  A newly added agent that generates humorous responses and tells jokes based on user queries.
 
 This project is built using the **LangGraph** library, which simplifies multi-agent workflows with a graph-based approach.
 
@@ -30,12 +33,17 @@ This project is built using the **LangGraph** library, which simplifies multi-ag
   *"Hello! How can I assist you today?"*
 - Provides real-time weather updates like:  
   *"The weather in Karachi is clear skies with a temperature of 30°C."*
-- Provides default responses for unsupported queries:  
-  *"I only handle greetings and weather queries right now."*
+- Tells jokes such as:  
+  *"Why don't scientists trust atoms? Because they make up everything!"*
+- Handles multi-step queries by consolidating responses from multiple agents.
 
 ### **Modular Design**
 - Agents are modular and reusable for other projects.
-- Clear separation between the **Front-End Orchestration Agent**, **Greeting Agent**, and **Weather Agent**.
+- Clear separation between the **Front-End Orchestration Agent**, **Greeting Agent**, **Weather Agent**, and **Joke Agent**.
+
+### **Advanced Orchestration**
+- Supports multi-intent queries such as:  
+  *"Tell me a joke and the weather."*
 
 ### **Debugging and Logging**
 - Debug logs trace the flow of user messages and agent responses.
@@ -51,11 +59,13 @@ This project is built using the **LangGraph** library, which simplifies multi-ag
 2. The **Front-End Orchestration Agent** routes the message to the appropriate agent:
    - **Greeting Agent** for greetings.
    - **Weather Agent** for weather-related queries.
+   - **Joke Agent** for humor-related queries.
 
 ### **Response Generation**
 3. The respective agent processes the message and generates an appropriate response:
    - The **Greeting Agent** responds to greetings.
    - The **Weather Agent** fetches real-time weather data based on the user's location.
+   - The **Joke Agent** tells a joke or responds humorously.
 
 ### **Final Reply**
 4. The response is returned to the user via the **Front-End Orchestration Agent**.
@@ -102,8 +112,13 @@ Enter your message: can you tell me the weather
 The weather in Karachi is clear skies with a temperature of 30°C.
 
 Enter your message: tell me a joke
-I only handle greetings and weather queries right now.
+Why don't scientists trust atoms? Because they make up everything!
+
+Enter your message: tell me a joke and the weather
+Why don't scientists trust atoms? Because they make up everything! The weather in Karachi is clear skies with a temperature of 30°C.
 ```
+
+---
 
 ## **Project Structure**
 
@@ -114,11 +129,14 @@ I only handle greetings and weather queries right now.
 └── requirements.txt         # Dependencies for the project
 ```
 
+---
+
 ## **Key Components**
 
 ### **Front-End Orchestration Agent**
 - Manages user interaction and message routing.
 - Consolidates responses from specialized agents.
+- Supports context-aware interactions and multi-intent queries.
 
 ### **Greeting Agent**
 - Handles simple greetings and generates friendly responses.
@@ -129,8 +147,14 @@ I only handle greetings and weather queries right now.
 - Provides weather updates like temperature and weather condition.
 - Uses geocoding to retrieve location coordinates dynamically.
 
+### **Joke Agent**
+- Generates humorous responses based on user input.
+- Can combine jokes with other queries (e.g., weather jokes).
+
 ### **LangGraph**
 - A graph-based library that simplifies multi-agent workflows.
+
+---
 
 ## **Testing and Validation**
 
